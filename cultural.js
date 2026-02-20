@@ -2341,57 +2341,91 @@ const drawChakana = (cx, cy, r, rot) => {
   }
 },
 {
-  name: "Imperial Lion's Mane",
-  tags: ["china", "statue", "imperial", "sculpture"],
-  description: "The rhythmic, heavy stone curls of a Forbidden City Guardian Lion. Bronze and cinnabar accents.",
+  name: "Wrath of the Stone Shi",
+  tags: ["china", "imperial", "sculpture", "beast", "premium"],
+  description: "A high-fidelity rendering of an Imperial Guardian Lion's mane and maw. The stone 'breathes' with ancient power.",
   animator: (c, ctx, mouse) => {
     let t = 0, id;
 
-    const drawStoneCurl = (x, y, r, rot) => {
+    const drawSculptedCurl = (x, y, size, rot, intensity) => {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(rot);
-      ctx.strokeStyle = "#444";
-      ctx.lineWidth = 8;
-      // The "Spiral" logic of a Foo Dog mane
+      
+      // Stone Shadow Depth
+      const stoneGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+      stoneGrad.addColorStop(0, "#2a2a2a");
+      stoneGrad.addColorStop(1, "#0a0a0a");
+      
+      ctx.fillStyle = stoneGrad;
       ctx.beginPath();
-      for (let i = 0; i < 20; i++) {
-        const angle = 0.3 * i;
-        const dist = (r / 20) * i;
-        ctx.lineTo(Math.cos(angle) * dist, Math.sin(angle) * dist);
+      // The "Imperial Curl" - A stylized, heavy nautilus shape
+      for (let i = 0; i < 30; i++) {
+        const a = 0.2 * i;
+        const d = (size / 30) * i;
+        const px = Math.cos(a) * d;
+        const py = Math.sin(a) * d;
+        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
       }
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = `rgba(212, 175, 55, ${0.1 + intensity * 0.4})`; // Gold leaf in cracks
       ctx.stroke();
-      // Bronze center stud
-      ctx.fillStyle = "#cd7f32";
-      ctx.beginPath(); ctx.arc(0, 0, 5, 0, 7); ctx.fill();
+      ctx.fill();
+
+      // Highlight on the stone edge
+      ctx.strokeStyle = "rgba(255,255,255,0.05)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      
       ctx.restore();
     };
 
     const loop = () => {
-      t += 0.01;
-      ctx.fillStyle = "#1a0505"; ctx.fillRect(0, 0, c.width, c.height);
+      t += 0.008;
+      // Dark Sanctuary Background
+      ctx.fillStyle = "#0a0808";
+      ctx.fillRect(0, 0, c.width, c.height);
 
-      const cx = c.width / 2, cy = c.height / 2;
+      const cx = c.width / 2;
+      const cy = c.height / 2;
 
-      // Draw a grid of mane-curls that rotate as you get near
-      for (let i = 0; i < 6; i++) {
-        for (let j = 0; j < 4; j++) {
-          const x = 100 + i * 120;
-          const y = 100 + j * 120;
-          const dist = Math.hypot(x - mouse.x, y - mouse.y);
-          const rot = t + (dist * 0.01);
-          drawStoneCurl(x, y, 40, rot);
-        }
+      // 1. The Mane (Radial Grid)
+      for (let i = 0; i < 40; i++) {
+        const angle = (i / 10) * Math.PI * 2 + t * 0.2;
+        const dist = 120 + Math.floor(i / 10) * 60;
+        const x = cx + Math.cos(angle) * dist;
+        const y = cy + Math.sin(angle) * dist;
+        
+        const mDist = Math.hypot(x - mouse.x, y - mouse.y);
+        const intensity = Math.max(0, 1 - mDist / 200);
+        
+        drawSculptedCurl(x, y, 30 + intensity * 15, angle + t, intensity);
       }
 
-      // Central Imperial Bell
+      // 2. The Imperial Maw (The Face Center)
       ctx.save();
-      ctx.translate(cx, cy + 100);
-      ctx.fillStyle = "#d4af37";
-      ctx.beginPath();
-      ctx.moveTo(-30, 0); ctx.lineTo(30, 0);
-      ctx.lineTo(40, 50); ctx.quadraticCurveTo(0, 70, -40, 50);
-      ctx.closePath(); ctx.fill();
+      ctx.translate(cx, cy);
+      
+      // Stone Teeth (Sharp Geometry)
+      ctx.fillStyle = "#111";
+      for(let i=0; i<4; i++) {
+        ctx.rotate(Math.PI / 2);
+        ctx.beginPath();
+        ctx.moveTo(-20, 40);
+        ctx.lineTo(0, 80 + Math.sin(t*2)*10); // Fangs "grow" with pulse
+        ctx.lineTo(20, 40);
+        ctx.fill();
+        ctx.strokeStyle = "#333";
+        ctx.stroke();
+      }
+      
+      // Central "Spirit Orb" (The pearl they often guard)
+      const orbG = ctx.createRadialGradient(0, 0, 0, 0, 0, 40);
+      orbG.addColorStop(0, "#d4af37");
+      orbG.addColorStop(1, "transparent");
+      ctx.fillStyle = orbG;
+      ctx.globalCompositeOperation = "screen";
+      ctx.beginPath(); ctx.arc(0, 0, 30 + Math.sin(t)*5, 0, 7); ctx.fill();
       ctx.restore();
 
       id = requestAnimationFrame(loop);
