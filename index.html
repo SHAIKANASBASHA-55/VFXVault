@@ -1,10 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta name="google-site-verification" content="N7TUZwivBtIclU_IrhALGnub9L2trj7CkBNorN0nCCw" />
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="icon" type="image/png" href="/favicon.png">
-  <title>VFXVault — Particle Gallery</title>
+
+  <!-- ── PRIMARY SEO ─────────────────────────────── -->
+  <title>VFXVault — Free Particle & VFX Effect Gallery | 772+ Canvas Animations</title>
+  <meta name="description" content="VFXVault is a free interactive gallery of 772+ particle and VFX effects built with HTML5 Canvas and JavaScript. Browse, preview, and copy code for fire, space, cyber, fluid, nature, explosion effects and more."/>
+  <meta name="keywords" content="particle effects, VFX gallery, canvas animation, JavaScript effects, HTML5 canvas, particle system, fire effect, space particles, cyber effects, interactive animation, free VFX, web animation"/>
+  <meta name="author" content="Shaik Anas Basha"/>
+  <meta name="robots" content="index, follow"/>
+  <link rel="canonical" href="https://vfxvault.vercel.app/"/>
+
+  <!-- ── OPEN GRAPH (Facebook / LinkedIn) ────────── -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="VFXVault — 772+ Free Particle & VFX Effects"/>
+  <meta property="og:description" content="Interactive gallery of 772+ particle effects built with HTML5 Canvas. Browse fire, space, cyber, fluid, nature effects — copy the JS code instantly."/>
+  <meta property="og:url" content="https://vfxvault.vercel.app/"/>
+  <meta property="og:image" content="https://vfxvault.vercel.app/preview.png"/>
+  <meta property="og:site_name" content="VFXVault"/>
+
+  <!-- ── TWITTER CARD ─────────────────────────────── -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="VFXVault — 772+ Free Particle & VFX Effects"/>
+  <meta name="twitter:description" content="Interactive gallery of 772+ particle effects. Browse, preview, copy JS code — fire, space, cyber, fluid and more."/>
+  <meta name="twitter:image" content="https://shaikanasbasha-55.github.io/vfxvault/preview.png"/>
+
+  <!-- ── STRUCTURED DATA (JSON-LD) ────────────────── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "VFXVault",
+    "description": "A free interactive gallery of 772+ particle and VFX effects built with HTML5 Canvas and JavaScript.",
+    "url": "https://shaikanasbasha-55.github.io/vfxvault/",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Web",
+    "author": {
+      "@type": "Person",
+      "name": "Shaik Anas Basha",
+      "url": "https://github.com/SHAIKANASBASHA-55"
+    },
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "keywords": "particle effects, canvas animation, VFX, JavaScript, HTML5"
+  }
+  </script>
+
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -245,6 +288,20 @@
     .nav-btn:hover { border-color:var(--cyan); color:var(--cyan); background:rgba(0,229,255,.07); }
     #btn-prev { left:14px; }
     #btn-next { left:84px; }
+    #btn-random {
+      left: 50%; transform: translateX(-50%);
+      background: rgba(12,16,22,.88); border: 1px solid rgba(255,179,0,.35);
+      color: var(--amber); font-size:10px; font-family:'Space Grotesk',sans-serif;
+      font-weight:600; padding:7px 14px; border-radius:7px;
+      cursor:pointer; transition:all .14s; backdrop-filter:blur(10px);
+      display:flex; align-items:center; gap:6px;
+    }
+    #btn-random:hover {
+      border-color:var(--amber); background:rgba(255,179,0,.1);
+      box-shadow:0 0 14px rgba(255,179,0,.25);
+    }
+    #btn-random.spin svg { animation: spinOnce .4s ease; }
+    @keyframes spinOnce { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 
     /* ── CODE PANEL ─────────────────────────── */
     #code-panel {
@@ -590,6 +647,13 @@
       <div id="hud-xy">x <span id="mx">—</span><br>y <span id="my">—</span></div>
       <button class="nav-btn" id="btn-prev">← Prev</button>
       <button class="nav-btn" id="btn-next">Next →</button>
+      <button id="btn-random" class="nav-btn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="16 3 21 3 21 8"/><polyline points="4 20 21 3"/>
+          <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+        </svg>
+        Random <span style="opacity:.45;font-size:9px;margin-left:2px">[R]</span>
+      </button>
     </div>
 
     <div id="code-panel">
@@ -911,15 +975,34 @@ function renderList(){
   });
 }
 
+let loadTimer = null;
 function load(gi){
-  if(stop){stop();stop=null;}
+  // Debounce rapid clicks — cancel pending load
+  if(loadTimer){ clearTimeout(loadTimer); loadTimer=null; }
+
+  // 1. Hard stop the running animation immediately
+  if(stop){ try{ stop(); } catch(e){} stop=null; }
+
   curIdx=gi;
   const eff=ALL[gi];
-  canvas.width=canvas.offsetWidth; canvas.height=canvas.offsetHeight;
-  ctx.fillStyle='#07090d'; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // 2. Resize & wipe canvas BEFORE starting new animator
+  canvas.width  = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#07090d';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
   mouse.x=canvas.width/2; mouse.y=canvas.height/2;
-  const ctrl=eff.animator(canvas,ctx,mouse);
-  ctrl.start(); stop=ctrl.stop;
+
+  // 3. Start new animator after tiny delay — gives browser time to breathe
+  loadTimer = setTimeout(()=>{
+    requestAnimationFrame(()=>{
+      const ctrl=eff.animator(canvas,ctx,mouse);
+      ctrl.start(); stop=ctrl.stop;
+    });
+  }, 60);
+
+  // 4. Update UI immediately
   document.getElementById('ov-cat').textContent=`${eff._catLabel} · ${(eff.tags||[]).slice(0,2).join(', ')}`;
   document.getElementById('ov-name').textContent=eff.name;
   document.getElementById('ov-desc').textContent=eff.description||'';
@@ -940,9 +1023,22 @@ function nav(delta){
 }
 document.getElementById('btn-prev').addEventListener('click',()=>nav(-1));
 document.getElementById('btn-next').addEventListener('click',()=>nav(+1));
+document.getElementById('btn-random').addEventListener('click',()=>{
+  const f = getFiltered(); if(!f.length) return;
+  let next;
+  do { next = Math.floor(Math.random() * f.length); } while (f.length > 1 && f[next]._gi === curIdx);
+  const btn = document.getElementById('btn-random');
+  btn.classList.remove('spin');
+  void btn.offsetWidth; // reflow to restart animation
+  btn.classList.add('spin');
+  load(f[next]._gi);
+  if(isMobile()) setMobileTab('preview');
+  setTimeout(()=>{ document.querySelector('.eff-item.active')?.scrollIntoView({behavior:'smooth',block:'nearest'}); },40);
+});
 document.addEventListener('keydown',e=>{
   if(e.key==='ArrowDown'||e.key==='j') nav(+1);
   if(e.key==='ArrowUp'  ||e.key==='k') nav(-1);
+  if(e.key==='r'||e.key==='R') document.getElementById('btn-random').click();
   if(e.key==='Escape'){query='';document.getElementById('search').value='';renderList();}
 });
 
