@@ -1,7 +1,7 @@
 # 🎆 VFX Vault — 772+ Particle & Visual Effects
 
 <p align="center">
-  <img src="screenshot.png" alt="VFX Vault Preview" width="800"/>
+  <img src="Screenshot 2026-02-28 112305.png" alt="VFX Vault Preview" width="800"/>
 </p>
 
 <p align="center">
